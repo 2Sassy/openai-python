@@ -11,7 +11,7 @@ class Image(APIResource):
 
     @classmethod
     def _get_url(cls, action):
-        return cls.class_url() + f"/{action}"
+        return f"{cls.class_url()}/{action}"
 
     @classmethod
     def create(
@@ -43,9 +43,7 @@ class Image(APIResource):
 
         url = cls._get_url("variations")
 
-        files: List[Any] = []
-        for key, value in params.items():
-            files.append((key, (None, value)))
+        files: List[Any] = [(key, (None, value)) for key, value in params.items()]
         files.append(("image", ("image", image, "application/octet-stream")))
 
         response, _, api_key = requestor.request("post", url, files=files)
@@ -77,12 +75,13 @@ class Image(APIResource):
 
         url = cls._get_url("edits")
 
-        files: List[Any] = []
-        for key, value in params.items():
-            files.append((key, (None, value)))
-        files.append(("image", ("image", image, "application/octet-stream")))
-        files.append(("mask", ("mask", mask, "application/octet-stream")))
-
+        files: List[Any] = [(key, (None, value)) for key, value in params.items()]
+        files.extend(
+            (
+                ("image", ("image", image, "application/octet-stream")),
+                ("mask", ("mask", mask, "application/octet-stream")),
+            )
+        )
         response, _, api_key = requestor.request("post", url, files=files)
 
         return util.convert_to_openai_object(
